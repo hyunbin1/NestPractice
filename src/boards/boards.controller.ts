@@ -4,51 +4,35 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { BoardsService } from './boards.service';
-import { Board, BoardStatus } from './board.model';
+import {  BoardStatus } from './board.status.enum';
 import { CreateBoardDTO } from './dto/create-board.dto';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation-pipe';
+import { Board } from './board.entity';
 
 @Controller('boards')
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
-
-  @Get('/')
-  // :Board[] - 불러오는 데이터 타입을 정의해줌.
-  getAllBoards(): Board[] {
-    return this.boardsService.getAllBoards();
-  }
-
-  @Post('/')
+  
+  @Post()
   @UsePipes(ValidationPipe)
-  createBoard(
-    // 요청 내용
-    @Body() createBoardDTO: CreateBoardDTO,
-  ) {
-    // service에서 받은 응답 내용
-    return this.boardsService.createBoard(createBoardDTO);
+  createBoard(@Body() CreateBoardDTO: CreateBoardDTO): Promise<Board> {
+    return this.boardsService.createBoard(CreateBoardDTO);
   }
 
   @Get('/:id')
-  getBoardById(@Param('id') id: string): Board {
-    return this.boardsService.getBoardById(id);
+  getBoardById(@Param('id') id: number): Promise<Board> {
+    return this.boardsService.getBoardById(id)
   }
 
   @Delete('/:id')
-  deleteBoard(@Param('id') id: string): void {
-    this.boardsService.deleteBoard(id);
-  }
-
-  @Patch('/:id/status')
-  updateBoardStatus(
-    @Param('id') id: string,
-    @Body('status', BoardStatusValidationPipe) status: BoardStatus,
-  ) {
-    return this.boardsService.updateBoardStatus(id, status);
+  deleteBoard(@Param('id', ParseIntPipe) id): Promise<void> {
+    return this.boardsService.deleteBoard(id);
   }
 }

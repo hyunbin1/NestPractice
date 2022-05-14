@@ -1,50 +1,42 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './board.model';
+import { Get, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { BoardStatus } from './board.status.enum';
 import { CreateBoardDTO } from './dto/create-board.dto';
 import { v1 as uuid } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { BoardRepository } from './board.repository';
+import { Board } from './board.entity';
 
 @Injectable()
 export class BoardsService {
-  private boards: Board[] = [];
+  constructor(
+      @InjectRepository(BoardRepository)
+      private boardRepository: BoardRepository,
+  ) {}
+    // async getAllBoards(user: User): Promise<Board[]> {
+    //   const query = this.boardRepository.createQueryBuilder('board');
+    // }
 
-  getAllBoards(): Board[] {
-    return this.boards;
+    async getBoardById(id: number): Promise <Board> {
+      const found = await this.boardRepository.findOne(id);
+
+       if (!found) {
+          throw new NotFoundException(`Can't find Board with id ${id}`);
+      }
+      return found;
   }
 
-  // 아이디로 검색
-  getBoardById(id: string): Board {
-    const found = this.boards.find((board) => board.id === id);
-
-    if(!found) {
-      throw new NotFoundException(`Can't find Board with entred Id ${id}`);
+    createBoard(createBoardDTO: CreateBoardDTO): Promise<Board> {
+      return this.boardRepository.createBoard(createBoardDTO);
     }
-    return found;
-  }
 
-  // 회원 생성
-  createBoard(createBoardDTO: CreateBoardDTO) {
-    // DTO 에서 가져오고
-    const { title, description } = createBoardDTO;
-    // 가져온 내용을 보드에 주입
-    const board: Board = {
-      id: uuid(),
-      title,
-      description,
-      status: BoardStatus.PUBLIC,
-    };
+    async deleteBoard(id: number): Promise<void> {
+      const result = await this.boardRepository.delete(id);
 
-    this.boards.push(board);
-    return board;
-  }
-
-  deleteBoard(id: string): void {
-    const found = this.getBoardById(id);
-    this.boards = this.boards.filter((board) => board.id !== found.id);
-  }
-
-  updateBoardStatus(id: string, status: BoardStatus): Board {
-    const board = this.getBoardById(id);
-    board.status = status;
-    return board;
-  }
+      if(result.affected === 0) {
+        throw new NotFoundException(`Can't find Board with id ${id}`);
+      }
+      else{
+        console.log("성공적으로 삭제되었습니다. result = ", result);
+      }
+    }
 }
