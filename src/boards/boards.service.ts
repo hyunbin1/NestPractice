@@ -12,10 +12,10 @@ export class BoardsService {
       @InjectRepository(BoardRepository)
       private boardRepository: BoardRepository,
   ) {}
-    // async getAllBoards(user: User): Promise<Board[]> {
-    //   const query = this.boardRepository.createQueryBuilder('board');
-    // }
-
+    async getAllBoards(): Promise<Board[]> {
+      return this.boardRepository.find();
+    }
+  
     async getBoardById(id: number): Promise <Board> {
       const found = await this.boardRepository.findOne(id);
 
@@ -39,4 +39,15 @@ export class BoardsService {
         console.log("성공적으로 삭제되었습니다. result = ", result);
       }
     }
+
+    async updateBoardStatus(id: number, status: BoardStatus): Promise<Board>{
+      const board = await this.getBoardById(id);
+      
+      board.status = status;
+      await this.boardRepository.save(board);
+      
+      return board;
+    }
+
+
 }

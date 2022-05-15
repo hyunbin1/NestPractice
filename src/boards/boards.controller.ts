@@ -35,4 +35,18 @@ export class BoardsController {
   deleteBoard(@Param('id', ParseIntPipe) id): Promise<void> {
     return this.boardsService.deleteBoard(id);
   }
+
+  @Patch('/:id/status')
+  updateBoardStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status', BoardStatusValidationPipe) status:BoardStatus,
+    ): Promise<Board> {
+      return this.boardsService.updateBoardStatus(id, status);
+    }
+
+  @Get()
+  getAllBoards(): Promise<Board[]> {
+    return this.boardsService.getAllBoards();
+  }
+
 }
